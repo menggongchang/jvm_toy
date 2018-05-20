@@ -7,10 +7,13 @@ type Frame struct {
 	lower        *Frame        //链表
 	localVars    LocalVars     //局部变量表
 	operandStack *OperandStack //操作数栈
+	thread       *Thread       //用于实现指令跳转
+	nextPC       int           //用于实现指令跳转
 }
 
-func NewFrame(maxLocals, maxStack uint) *Frame {
+func NewFrame(thread *Thread, maxLocals, maxStack uint) *Frame {
 	return &Frame{
+		thread:       thread,
 		localVars:    newLocalVars(maxLocals),
 		operandStack: newOperandStack(maxStack),
 	}
@@ -21,4 +24,13 @@ func (self *Frame) LocalVars() LocalVars {
 }
 func (self *Frame) OperandStack() *OperandStack {
 	return self.operandStack
+}
+func (self *Frame) Thread() *Thread {
+	return self.Thread()
+}
+func (self *Frame) NextPC() int {
+	return self.nextPC
+}
+func (self *Frame) SetNextPC(nextPC int) {
+	self.nextPC = nextPC
 }

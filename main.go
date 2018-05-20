@@ -14,7 +14,7 @@ func main() {
 	if cmd.helpFlag {
 		printUsage()
 	} else if cmd.versionFlag {
-		fmt.Println("version 0.0.4")
+		fmt.Println("version 0.0.5")
 	} else if cmd.class == "" {
 		printUsage()
 	} else {
@@ -27,11 +27,19 @@ func startJVM(cmd *Cmd) {
 	fmt.Printf("classpath: %v, class: %s, args: %v \n", cp, cmd.class, cmd.args)
 	className := strings.Replace(cmd.class, ".", "/", -1)
 	cf := loadClass(className, cp)
+	mainMethod := getMainMethod(cf)
+	if mainMethod != nil {
+		interpret(mainMethod)
+	} else {
+		fmt.Printf("Main method not found in class %s\n", className)
+	}
 	printClassInfo(cf)
 
+	/*  0.0.4
 	frame := rtda.NewFrame(100, 100)
 	testLocalVars(frame.LocalVars())
 	testOperandStack(frame.OperandStack())
+	*/
 }
 
 //加载class文件，解析为classfile结构体
@@ -48,6 +56,7 @@ func loadClass(className string, cp *classpath.ClassPath) *classfile.ClassFile {
 	return cf
 }
 
+//0.0.3
 func printClassInfo(cf *classfile.ClassFile) {
 	fmt.Printf("version: %v.%v\n", cf.MajorVersion(), cf.MinorVersion())
 	fmt.Printf("constants count: %v\n", len(cf.ConstantPool()))
@@ -65,6 +74,7 @@ func printClassInfo(cf *classfile.ClassFile) {
 	}
 }
 
+//0.0.4
 func testLocalVars(vars rtda.LocalVars) {
 	vars.SetInt(0, 100)
 	vars.SetInt(1, -100)
@@ -82,6 +92,7 @@ func testLocalVars(vars rtda.LocalVars) {
 	println(vars.GetRef(9))
 }
 
+//0.0.4
 func testOperandStack(ops *rtda.OperandStack) {
 	ops.PushInt(100)
 	ops.PushInt(-100)
@@ -97,4 +108,14 @@ func testOperandStack(ops *rtda.OperandStack) {
 	println(ops.PopLong())
 	println(ops.PopInt())
 	println(ops.PopInt())
+}
+
+//0.0.5
+func getMainMethod(cf *classfile.ClassFile) *classfile.MemberInfo {
+	for _, m := range cf.Methods() {
+		if m.Name() == "main" && m.Descriptor() == "([Ljava/lang/String;)V" {
+			return m
+		}
+	}
+	return nil
 }
