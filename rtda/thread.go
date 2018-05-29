@@ -1,5 +1,9 @@
 package rtda
 
+import (
+	"jvmgo/rtda/heap"
+)
+
 type Thread struct {
 	pc    int
 	stack *Stack //java虚拟机栈
@@ -26,4 +30,8 @@ func (self *Thread) PopFrame() *Frame {
 }
 func (self *Thread) CurrentFrame() *Frame {
 	return self.stack.top()
+}
+
+func (self *Thread) NewFrame(method *heap.Method) *Frame {
+	return newFrame(self, method)
 }

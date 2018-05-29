@@ -9,6 +9,7 @@ just a toy of jvm
 - v3.0：详细讨论class文件格式，解析class文件；
 - v4.0：初步实现运行时数据区，主要是线程私有的部分；
 - v5.0：编写一个简单的解释器，并实现大约150条指令；
+- v6.0：实现线程共享的运行时数据区，包括方法区和运行时常量池；
 
 
 ---------------------
@@ -173,32 +174,98 @@ just a toy of jvm
    java虚拟机定义了205条指令（单字节限制数目），可以按照用途分为11类：
 
    1. 常量指令：把常量推入操作数栈顶；
+
    2. 加载指令：从局部变量表获取变量，然后推入操作数栈顶；
+
    3. 存储指令：把变量从操作数栈顶弹出，存入局部变量表；
+
    4. 操作数栈指令：直接对操作数栈顶进行操作；
+
    5. 数学指令：算数指令、位移指令、布尔运算指令；
+
    6. 转换指令：类型转换；
+
    7. 比较指令：将比较结果推入操作数栈顶，或根据比较结果跳转；
+
    8. 控制指令
+
    9. 引用指令
 
-
    10. 扩展指令
-
 
    11. 保留指令：一条给调试器实现断点，另两条给JVM内部使用，不允许出现在class文件中；
 
 3. **JVM解释器的逻辑**
 
-   ```java
-   for{
-     pc:=calculatePC() //计算PC
-     opCode:=bytecode[pc] //读取操作码
-     inst:=createInst(opCode) //解释操作码,生成响应的指令
-     inst.fetchOperands(bytecode) //指令读取操作数
-     inst.execute() //执行指令
+     ```java
+     for{
+        pc:=calculatePC() //计算PC
+        opCode:=bytecode[pc] //读取操作码
+        inst:=createInst(opCode) //解释操作码,生成响应的指令
+        inst.fetchOperands(bytecode) //指令读取操作数
+        inst.execute() //执行指令
+     }
+     ```
+
+
+##### 六、类和对象
+
+1. 方法区
+
+   方法区主要存放总class文件中获取的类信息。
+
+   当JVM第1次使用某个类时，会搜索类路径，找到class文件，读取并解析class文件，将相关信息放在方法区。
+
+   ```go
+   //方法区中存放的类信息
+   type Class struct {
+   	accessFlags       uint16
+   	name              string
+   	superClassName    string
+   	interfaceNames    []string
+   	constantPool      *ConstantPool //运行时常量池
+   	fields            []*Field
+   	methods           []*Method
+   	loader            *ClassLoader //类加载器指针
+   	superClass        *Class
+   	interfaces        []*Class
+   	instanceSlotCount uint  //实体变量占据的空间大小
+   	staticSlotCount   uint  //类变量占据的空间大小
+   	staticVars        Slots //存放静态变量
+   }
+   type Field、Method struct {
+   	accessFlags uint16
+   	name        string
+   	descriptor  string
+   	class       *Class
+   	constValueIndex uint
+   	slotID          uint
+   }
+
+   //ConstantPool运行时常量池主要存放两类信息：字面量和符号引用
+   type FieldRef struct {
+     	cp        *ConstantPool
+   	class     *Class //字段的类，用到时才解析
+   	className string 
+     	name       string
+   	descriptor string
+   	field *Field   //用到时才解析
    }
    ```
 
-   ​
+2. 类加载器
+
+   1）找到class文件并把数据读取到内存；
+
+   2）解析class文件，生成虚拟机可以使用的类数据，放入方法区；（加载父类，加载接口类）
+
+   3）链接：类的验证+类变量分配空间并初始化；
+
+3. `startJVM`工作流程
+
+   1）通过classpath构造classLoader；
+
+   2）加载类MyObject；
+
+   3）执行main方法：（1）new thread（2）由方法构建frame（3）解析方法的code字节码，执行指令；
 

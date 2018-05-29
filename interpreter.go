@@ -2,23 +2,19 @@ package main
 
 import (
 	"fmt"
-	"jvmgo/classfile"
 	"jvmgo/instructions"
 	"jvmgo/instructions/base"
 	"jvmgo/rtda"
+	"jvmgo/rtda/heap"
 )
 
-func interpret(methodInfo *classfile.MemberInfo) {
-	codeAttr := methodInfo.CodeAttribute() //获得代码
-	maxLocals := codeAttr.MaxLocals()
-	maxStack := codeAttr.MaxStack()
-	byteCode := codeAttr.Code()
-
+func interpret(method *heap.Method) {
 	thread := rtda.NewThread()
-	frame := rtda.NewFrame(thread, maxLocals, maxStack)
+	frame := thread.NewFrame(method)
 	thread.PushFrame(frame)
+
 	defer catchErr(frame)
-	loop(thread, byteCode)
+	loop(thread, method.Code())
 }
 
 //方法结束指令return还没有实现，必然报错
