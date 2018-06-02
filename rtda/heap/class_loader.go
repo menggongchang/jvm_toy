@@ -7,13 +7,15 @@ import (
 )
 
 type ClassLoader struct {
-	cp       *classpath.ClassPath
-	classMap map[string]*Class //相当于方法区
+	cp          *classpath.ClassPath
+	verboseFlag bool
+	classMap    map[string]*Class //相当于方法区
 }
 
-func NewClassLoader(cp *classpath.ClassPath) *ClassLoader {
+func NewClassLoader(cp *classpath.ClassPath, verboseFlag bool) *ClassLoader {
 	cl := &ClassLoader{}
 	cl.cp = cp
+	cl.verboseFlag = verboseFlag
 	cl.classMap = make(map[string]*Class)
 	return cl
 }
@@ -29,7 +31,9 @@ func (self *ClassLoader) loadNonArrayClass(name string) *Class {
 	data, entry := self.readClass(name) //读取class文件，加载数据到内存
 	class := self.defineClass(data)     //解析class文件，生成类数据，放入方法区
 	link(class)                         //链接
-	fmt.Printf("[Loaded %s from %s]\n", name, entry)
+	if self.verboseFlag {
+		fmt.Printf("[Loaded %s from %s]\n", name, entry)
+	}
 	return class
 }
 

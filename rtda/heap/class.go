@@ -20,6 +20,7 @@ type Class struct {
 	instanceSlotCount uint  //实体变量占据的空间大小
 	staticSlotCount   uint  //类变量占据的空间大小
 	staticVars        Slots //存放静态变量
+	initStarted       bool  //类是否初始化
 }
 
 func newClass(cf *classfile.ClassFile) *Class {
@@ -66,10 +67,10 @@ func (self *Class) IsEnum() bool {
 
 //是否有权限访问
 func (self *Class) isAccessibleTo(other *Class) bool {
-	return self.IsPublic() || self.getPackageName() == other.getPackageName()
+	return self.IsPublic() || self.GetPackageName() == other.GetPackageName()
 }
 
-func (self *Class) getPackageName() string {
+func (self *Class) GetPackageName() string {
 	if i := strings.LastIndex(self.name, "/"); i >= 0 {
 		return self.name[:i]
 	}
@@ -89,10 +90,26 @@ func (self *Class) getStaticMethod(name, descriptor string) *Method {
 	return nil
 }
 
+func (self *Class) GetInitMethod() *Method {
+	return self.getStaticMethod("<clinit>", "()V")
+}
+
 // getters
+func (self *Class) Name() string {
+	return self.name
+}
+func (self *Class) SuperClass() *Class {
+	return self.superClass
+}
 func (self *Class) ConstantPool() *ConstantPool {
 	return self.constantPool
 }
 func (self *Class) StaticVars() Slots {
 	return self.staticVars
+}
+func (self *Class) InitStarted() bool {
+	return self.initStarted
+}
+func (self *Class) StartInit() {
+	self.initStarted = true
 }

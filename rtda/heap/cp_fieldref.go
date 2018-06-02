@@ -16,6 +16,7 @@ func newFieldRef(cp *ConstantPool, fieldInfo *classfile.ConstantFieldrefInfo) *F
 	return fieldRef
 }
 
+//解析字段的符号引用
 func (self *FieldRef) ResolvedField() *Field {
 	if self.field == nil {
 		self.ResolvedFieldRef()

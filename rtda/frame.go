@@ -25,6 +25,10 @@ func newFrame(thread *Thread, method *heap.Method) *Frame {
 	}
 }
 
+func (self *Frame) RevertNextPC() {
+	self.nextPC = self.thread.pc
+}
+
 func (self *Frame) LocalVars() LocalVars {
 	return self.localVars
 }
@@ -32,7 +36,7 @@ func (self *Frame) OperandStack() *OperandStack {
 	return self.operandStack
 }
 func (self *Frame) Thread() *Thread {
-	return self.Thread()
+	return self.thread
 }
 func (self *Frame) Method() *heap.Method {
 	return self.method

@@ -44,10 +44,10 @@ func (self *ClassMember) isAccessibleTo(d *Class) bool {
 	}
 	c := self.Class()
 	if self.IsProtected() {
-		return d == c || d.isSubClassOf(c) || c.getPackageName() == d.getPackageName()
+		return d == c || d.IsSubClassOf(c) || c.GetPackageName() == d.GetPackageName()
 	}
 	if !self.IsPrivate() { //默认访问权限
-		return c.getPackageName() == d.getPackageName()
+		return c.GetPackageName() == d.GetPackageName()
 	}
 	return d == c //私有
 }
