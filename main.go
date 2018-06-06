@@ -14,7 +14,7 @@ func main() {
 	if cmd.helpFlag {
 		printUsage()
 	} else if cmd.versionFlag {
-		fmt.Println("version 0.0.7")
+		fmt.Println("version 0.0.8")
 	} else if cmd.class == "" {
 		printUsage()
 	} else {
@@ -32,8 +32,8 @@ func startJVM(cmd *Cmd) {
 
 	mainMethod := mainClass.GetMainMethod()
 	if mainMethod != nil {
-		interpret(mainMethod, cmd.verboseInstFlag) //执行main方法
+		interpret(mainMethod, cmd.verboseInstFlag, cmd.args) //执行main方法
 	} else {
-		fmt.Printf("Main method not found in class %s\n", className)
+		fmt.Printf("Main method not found in class %s\n", cmd.class)
 	}
 }

@@ -24,7 +24,26 @@ func (self *ClassLoader) LoadClass(name string) *Class {
 	if class, ok := self.classMap[name]; ok {
 		return class
 	}
+	if name[0] == '[' {
+		return self.loadArrayClass(name)
+	}
 	return self.loadNonArrayClass(name)
+}
+
+func (self *ClassLoader) loadArrayClass(name string) *Class {
+	class := &Class{
+		accessFlags: ACC_PUBLIC,
+		name:        name,
+		loader:      self,
+		initStarted: true, //数组类不需要初始化
+		superClass:  self.LoadClass("java/lang/Object"),
+		interfaces: []*Class{
+			self.LoadClass("java/lang/Cloneable"),
+			self.LoadClass("java/io/Serializable"),
+		},
+	}
+	self.classMap[name] = class
+	return class
 }
 
 func (self *ClassLoader) loadNonArrayClass(name string) *Class {
@@ -173,7 +192,9 @@ func initStaticFinalVar(class *Class, field *Field) {
 			val := cp.GetConstant(cpIndex).(float64)
 			vars.SetDouble(slotID, val)
 		case "Ljava/lang/String;":
-			panic("todo") //第八章实现
+			goStr := cp.GetConstant(cpIndex).(string)
+			jStr := JString(class.Loader(), goStr)
+			vars.SetRef(slotID, jStr)
 		}
 	}
 }

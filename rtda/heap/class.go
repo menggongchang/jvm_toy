@@ -35,8 +35,24 @@ func newClass(cf *classfile.ClassFile) *Class {
 	return class
 }
 
+func (self *Class) isJlObject() bool {
+	return self.name == "java/lang/Object"
+}
+func (self *Class) isJlCloneable() bool {
+	return self.name == "java/lang/Cloneable"
+}
+func (self *Class) isJioSerializable() bool {
+	return self.name == "java/io/Serializable"
+}
+
 func (self *Class) NEWObject() *Object {
 	return newObject(self)
+}
+
+//根据类名得到数组类名
+func (self *Class) ArrayClass() *Class {
+	arrayClassName := getArrayClassName(self.name)
+	return self.Loader().LoadClass(arrayClassName)
 }
 
 //判断某个访问标志是否被设置
@@ -94,6 +110,20 @@ func (self *Class) GetInitMethod() *Method {
 	return self.getStaticMethod("<clinit>", "()V")
 }
 
+func (self *Class) getField(name, descriptor string, isStatic bool) *Field {
+	for c := self; c != nil; c = c.superClass {
+		for _, field := range c.fields {
+			if field.IsStatic() == isStatic &&
+				field.name == name &&
+				field.descriptor == descriptor {
+
+				return field
+			}
+		}
+	}
+	return nil
+}
+
 // getters
 func (self *Class) Name() string {
 	return self.name
@@ -106,6 +136,9 @@ func (self *Class) ConstantPool() *ConstantPool {
 }
 func (self *Class) StaticVars() Slots {
 	return self.staticVars
+}
+func (self *Class) Loader() *ClassLoader {
+	return self.loader
 }
 func (self *Class) InitStarted() bool {
 	return self.initStarted
